@@ -1,13 +1,13 @@
 import express, {Application, Request, Response} from 'express';
+import cors from 'cors';
+import userRouter from './routers/user';
+import gameRouter from './routers/game';
 
-const app: Application = express(); 
-const PORT = process.env.PORT || 3001
+const app: Application = express();
 
-app.get('/', (req: Request, res: Response) => {
+app.use(express.json());
+app.use(cors());
+app.use(userRouter);
+app.use(gameRouter);
 
-    res.send("ONLINE CHESS API")
-})
-
-app.listen(PORT, () => {
-    console.log(`Listening on PORT ${PORT}...`)    
-})
+export default app;
