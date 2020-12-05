@@ -2,9 +2,9 @@ import{ Router, Request, Response } from 'express';
 
 const router: Router = Router()
 
-router.get('/user', async (req: Request, res: Response) => {
+router.get('/chesspieces', async (req: Request, res: Response) => {
     
-    res.send('Users')
+    res.send('chesspieces')
 })
 
 export default router;

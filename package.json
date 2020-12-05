@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./build/app.js",
-    "dev": "env-cmd -f ./dev.env nodemon ./src/index.ts"
+    "start": "env-cmd -f ./dev.env nodemon ./src/index.ts"
   },
   "keywords": [],
   "author": "",

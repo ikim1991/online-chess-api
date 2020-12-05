@@ -1,11 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface GameI extends Document{
-    state: string;
+    identifer: string;
 }
 
 const GameSchema: Schema = new mongoose.Schema({
-    state: {
+    identifer: {
         type: String,
         required: true
     }
