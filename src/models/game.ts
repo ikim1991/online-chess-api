@@ -5,20 +5,28 @@ export interface GameI extends Document{
     host: {
         username: string,
         ready: boolean,
-        color?: string
+        color?: string,
+        hand?: string
     },
     joiner?: {
         username: string,
         ready: boolean,
-        color?: string
+        color?: string,
+        hand?: string
     },
     gameState: string
 }
 
-export interface GameIModel extends Model<GameI>{
-    createRoom: (identifier: string, username: string) => void,
-    joinRoom: (identifier: string, username: string) => void
+interface GameIDoc extends GameI, Document{
+    rockPaperScissors: (identifier: string) => boolean
 }
+
+interface GameIModel extends Model<GameIDoc>{
+    createRoom: (identifier: string, username: string) => GameI,
+    joinRoom: (identifier: string, username: string) => GameI,
+}
+
+
 
 const gameSchema: Schema = new mongoose.Schema({
     identifier: {
@@ -67,5 +75,20 @@ gameSchema.static('joinRoom', async (identifier: string, username: string) => {
     return game;
 })
 
-const Game = mongoose.model<GameI, GameIModel>("Game", gameSchema);
+gameSchema.method('rockPaperScissors', async (identifier: string) => {
+
+    const game = await Game.findOne({identifier})
+
+    if(game!.host.hand === 'ROCK' && game!.joiner!.hand === 'PAPER'){
+        return true
+    } else if(game!.host.hand === 'PAPER' && game!.joiner!.hand === 'SCISSORS'){
+        return true
+    } else if(game!.host.hand === 'SCISSORS' && game!.joiner!.hand === 'ROCK'){
+        return true
+    } else{
+        return false
+    }
+})
+
+const Game = mongoose.model<GameIDoc, GameIModel>("Game", gameSchema);
 export default Game;

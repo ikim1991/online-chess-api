@@ -59,10 +59,43 @@ io.on('connection', (socket: Socket) => {
 
     })
 
-    socket.on('leaveRoom', (identifier: string, username: string) => {
-        console.log(username, identifier)
-    })
+    socket.on('rock-paper-scissors', async (identifier: string, username: string, selection: string) => {
 
+        const game = await Game.findOne({identifier});
+
+        if(game){
+            if(username === game!.host!.username){
+                game!.host! = {
+                    ...game!.host!,
+                    hand: selection
+                }
+    
+                await game!.save()
+            } else{
+                game!.joiner! = {
+                    ...game!.joiner!,
+                    hand: selection
+                }
+    
+                await game!.save()
+            }
+        }
+
+        if(game!.host.hand && game!.joiner!.hand){
+            const resolved = await game!.rockPaperScissors(identifier)
+            
+            if(!resolved){
+                delete game!.host.hand
+                delete game!.joiner!.hand
+            } else{
+                game!.gameState = 'PLAY'
+            }
+
+            await game!.save()
+            io.to(identifier).emit('results', game, resolved)
+        }
+        
+    })
 
     socket.on('disconnect', () => {
         console.log("Client Disconnected...")
