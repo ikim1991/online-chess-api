@@ -3,6 +3,7 @@ import app from './app';
 import { Socket } from 'socket.io';
 import { NextFunction } from 'express';
 import Game from './models/game';
+import { checkServerIdentity } from 'tls';
 
 const io = require('socket.io')(app, {
     cors: {
@@ -62,7 +63,7 @@ io.on('connection', (socket: Socket) => {
     socket.on('rock-paper-scissors', async (identifier: string, username: string, selection: string) => {
 
         const game = await Game.findOne({identifier});
-
+        
         if(game){
             if(username === game!.host!.username){
                 game!.host! = {
@@ -79,22 +80,31 @@ io.on('connection', (socket: Socket) => {
     
                 await game!.save()
             }
-        }
 
-        if(game!.host.hand && game!.joiner!.hand){
-            const resolved = await game!.rockPaperScissors(identifier)
-            
-            if(!resolved){
-                delete game!.host.hand
-                delete game!.joiner!.hand
-            } else{
-                game!.gameState = 'PLAY'
+            if(game!.host.hand && game!.joiner!.hand){
+                const resolved = await game!.rockPaperScissors(identifier)
+    
+                if(resolved){
+                    game!.gameState = 'PLAY'
+                    await game!.save()
+                }
+
+                await io.to(identifier).emit('results', game, resolved)
+
+                game.host = {
+                    ...game.host,
+                    hand: undefined,
+                    result: undefined
+                }
+                game.joiner = {
+                    ...game.joiner,
+                    hand: undefined,
+                    result: undefined
+                }
+                await game.save()
+                
             }
-
-            await game!.save()
-            io.to(identifier).emit('results', game, resolved)
         }
-        
     })
 
     socket.on('disconnect', () => {
