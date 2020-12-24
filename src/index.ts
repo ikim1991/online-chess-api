@@ -3,7 +3,6 @@ import app from './app';
 import { Socket } from 'socket.io';
 import { NextFunction } from 'express';
 import Game from './models/game';
-import { checkServerIdentity } from 'tls';
 
 const io = require('socket.io')(app, {
     cors: {
@@ -36,17 +35,13 @@ io.on('connection', (socket: Socket) => {
         const game = await Game.findOne({identifier});
 
         if(userType === 'host'){
-            game!.host = {
-                username: player.username,
-                ready: !player.ready
-            }
+            game!.host.username = player.username
+            game!.host.ready = !player.ready
 
             await game!.save()
         } else{
-            game!.joiner = {
-                username: player.username,
-                ready: !player.ready
-            }
+            game!.joiner.username = player.username
+            game!.joiner.ready = !player.ready
 
             await game!.save()
         }
@@ -66,23 +61,15 @@ io.on('connection', (socket: Socket) => {
         
         if(game){
             if(username === game!.host!.username){
-                game!.host! = {
-                    ...game!.host!,
-                    hand: selection
-                }
-    
+                game!.host.hand = selection
                 await game!.save()
             } else{
-                game!.joiner! = {
-                    ...game!.joiner!,
-                    hand: selection
-                }
-    
+                game!.joiner.hand = selection
                 await game!.save()
             }
 
             if(game!.host.hand && game!.joiner!.hand){
-                const resolved = await game!.rockPaperScissors(identifier)
+                const resolved = await game.rockPaperScissors(identifier)
     
                 if(resolved){
                     game!.gameState = 'PLAY'
@@ -90,19 +77,7 @@ io.on('connection', (socket: Socket) => {
                 }
 
                 await io.to(identifier).emit('results', game, resolved)
-
-                game.host = {
-                    ...game.host,
-                    hand: undefined,
-                    result: undefined
-                }
-                game.joiner = {
-                    ...game.joiner,
-                    hand: undefined,
-                    result: undefined
-                }
-                await game.save()
-                
+                await Game.resetHand(identifier)
             }
         }
     })
