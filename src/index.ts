@@ -3,6 +3,7 @@ import app from './app';
 import { Socket } from 'socket.io';
 import { NextFunction } from 'express';
 import Game from './models/game';
+import Chessboard from './models/chessboard';
 
 const io = require('socket.io')(app, {
     cors: {
@@ -78,6 +79,30 @@ io.on('connection', (socket: Socket) => {
 
                 await io.to(identifier).emit('results', game, resolved)
                 await Game.resetHand(identifier)
+
+                const chessboard = new Chessboard({
+                    identifier,
+                    players: [
+                        {
+                            username: game.host.username,
+                            ready: game.host.ready,
+                            color: game.host.color,
+                            turn: true,
+                            check: false
+
+                        },
+                        {
+                            username: game.joiner.username,
+                            ready: game.joiner.ready,
+                            color: game.joiner.color,
+                            turn: false,
+                            check: false
+                        }
+                    ]
+                })
+
+                await chessboard.setupBoard();
+
             }
         }
     })

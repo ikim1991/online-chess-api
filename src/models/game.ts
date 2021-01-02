@@ -86,7 +86,7 @@ gameSchema.method('rockPaperScissors', async function(this: GameI, identifier: s
 
         game!.host.result = 'LOSE'
         game!.host.color = 'BLACK'
-        game!.joiner.result = 'LOSE'
+        game!.joiner.result = 'WIN'
         game!.joiner.color = 'WHITE'
 
         await game!.save()
@@ -94,10 +94,10 @@ gameSchema.method('rockPaperScissors', async function(this: GameI, identifier: s
         return true
     } else if(game!.host.hand === 'PAPER' && game!.joiner!.hand === 'ROCK'){
 
-        game!.host.result = 'LOSE'
-        game!.host.color = 'BLACK'
+        game!.host.result = 'WIN'
+        game!.host.color = 'WHITE'
         game!.joiner.result = 'LOSE'
-        game!.joiner.color = 'WHITE'
+        game!.joiner.color = 'BLACK'
 
         await game!.save()
 
@@ -106,18 +106,18 @@ gameSchema.method('rockPaperScissors', async function(this: GameI, identifier: s
 
         game!.host.result = 'LOSE'
         game!.host.color = 'BLACK'
-        game!.joiner.result = 'LOSE'
-        game!.joiner.color = 'WHITE'
+        game!.joiner.result = 'WIN'
+        game!.joiner.color = 'WHTIE'
 
         await game!.save()
 
         return true
     } else if(game!.host.hand === 'SCISSORS' && game!.joiner!.hand === 'PAPER'){
 
-        game!.host.result = 'LOSE'
-        game!.host.color = 'BLACK'
+        game!.host.result = 'WIN'
+        game!.host.color = 'WHITE'
         game!.joiner.result = 'LOSE'
-        game!.joiner.color = 'WHITE'
+        game!.joiner.color = 'BLACK'
 
         await game!.save()
 
@@ -126,18 +126,18 @@ gameSchema.method('rockPaperScissors', async function(this: GameI, identifier: s
 
         game!.host.result = 'LOSE'
         game!.host.color = 'BLACK'
-        game!.joiner.result = 'LOSE'
-        game!.joiner.color = 'WHITE'
+        game!.joiner.result = 'WIN'
+        game!.joiner.color = 'WHTIE'
 
         await game!.save()
 
         return true
     } else if(game!.host.hand === 'ROCK' && game!.joiner!.hand === 'SCISSORS'){
 
-        game!.host.result = 'LOSE'
-        game!.host.color = 'BLACK'
+        game!.host.result = 'WIN'
+        game!.host.color = 'WHITE'
         game!.joiner.result = 'LOSE'
-        game!.joiner.color = 'WHITE'
+        game!.joiner.color = 'BLACK'
 
         await game!.save()
 
@@ -160,7 +160,6 @@ gameSchema.static('resetHand', async (identifier: string) => {
     if(game){
         game.host.hand = undefined
         game.host.result = undefined
-        await game.save()
 
         game.joiner.hand = undefined
         game.joiner.result = undefined
