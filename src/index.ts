@@ -107,22 +107,27 @@ io.on('connection', (socket: Socket) => {
         }
     })
 
-    socket.on('movePiece', async (identifier: string, from: string, to: string, newCoord: [number, number]) => {
+    socket.on('movePiece', async (identifier: string, fromID: string, toPosition: string, newCoord: [number, number]) => {
 
         const chessboard = await Chessboard.findOne({identifier})
 
         if(chessboard){
-            await chessboard!.renderBoard(from, to, newCoord)
+            await chessboard!.onMove(fromID, toPosition, newCoord)
 
             await io.to(identifier).emit('renderBoard', chessboard.occupied, chessboard.chesspieces, chessboard.players)
         }
     })
 
     
-    socket.on('capturePiece', async (identifier: string, movedPiece: any, captured: any) => {
-        console.log(identifier, movedPiece, captured)
+    socket.on('capturePiece', async (identifier: string, fromID: string, toPosition: string, toID: string, toCoord: [number, number]) => {
 
-        await io.to(identifier).emit('renderBoard', "ON CAPTURE")
+        const chessboard = await Chessboard.findOne({identifier})
+
+        if(chessboard){
+            await chessboard!.onCapture(fromID, toPosition, toID, toCoord)
+
+            await io.to(identifier).emit('renderBoard', chessboard.occupied, chessboard.chesspieces, chessboard.players)
+        }
     })
 
     socket.on('disconnect', () => {

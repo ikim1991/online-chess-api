@@ -47,7 +47,8 @@ interface ChessboardI extends Document{
 
 interface ChessboardIDoc extends ChessboardI, Document{
     setupBoard: () => void
-    renderBoard: (from: string, to: string, newCoord: [number, number]) => void
+    onMove: (fromID: string, toPosition: string, newCoord: [number, number]) => void
+    onCapture: (fromID: string, toPosition: string, toID: string, toCoord: [number, number]) => void
 }
 
 interface ChessboardIModel extends Model<ChessboardIDoc>{
@@ -131,10 +132,10 @@ chessboardSchema.method("setupBoard", async function(this: ChessboardI){
     await chessboard.save()
 })
 
-chessboardSchema.method("renderBoard", async function(this: ChessboardI, from: string, to: string, newCoord: [number, number]){
+chessboardSchema.method("onMove", async function(this: ChessboardI, fromID: string, toPosition: string, newCoord: [number, number]){
 
     const chessboard = this
-    const chesspiece = chessboard.chesspieces.find(piece => piece.id === from)
+    const chesspiece = chessboard.chesspieces.find(piece => piece.id === fromID)
 
     if(!chesspiece!.hasBeenMoved){
         chesspiece!.hasBeenMoved = true
@@ -142,12 +143,12 @@ chessboardSchema.method("renderBoard", async function(this: ChessboardI, from: s
         await chessboard.save()
     }
     
-    chesspiece!.position = to
+    chesspiece!.position = toPosition
     chessboard.markModified('chesspiece.position')
     chesspiece!.coord = newCoord
     chessboard.markModified('chesspiece.coord')
 
-    chessboard!.occupied[from] = to
+    chessboard!.occupied[fromID] = toPosition
     chessboard.markModified('occupied')
 
     chessboard.players[0].turn = !chessboard.players[0].turn
@@ -156,6 +157,32 @@ chessboardSchema.method("renderBoard", async function(this: ChessboardI, from: s
     await chessboard.save()
 
 })
+
+chessboardSchema.method("onCapture", async function(this: ChessboardI, fromID: string, toPosition: string, toID: string, toCoord: [number, number]){
+    const chessboard = this
+    const chesspiece = chessboard.chesspieces.find(piece => piece.id === fromID)
+
+    chesspiece!.position = toPosition
+    chessboard.markModified('chesspiece.position')
+    chesspiece!.coord = toCoord
+    chessboard.markModified('chesspiece.coord')
+
+    chessboard!.occupied[fromID] = toPosition
+    chessboard!.occupied[toID] = "a0"
+    chessboard.markModified('occupied')
+
+    const captured = chessboard.chesspieces.find(piece => piece.id === toID)
+
+    captured!.position = "a0"
+    chessboard.markModified('captured.position')
+
+    chessboard.players[0].turn = !chessboard.players[0].turn
+    chessboard.players[1].turn = !chessboard.players[1].turn
+
+    await chessboard.save()
+})
+
+
 
 const Chessboard = mongoose.model<ChessboardIDoc, ChessboardIModel>("Chessboard", chessboardSchema);
 export default Chessboard;
