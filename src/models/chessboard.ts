@@ -5,7 +5,7 @@ interface ChesspieceI extends Document{
     rank: string;
     color: string;
     position: string;
-    coord: [number, number][];
+    coord: [number, number];
     hasBeenMoved: boolean;
     inPlay: boolean;
 }
@@ -15,19 +15,17 @@ const ChesspieceSchema: Schema = new mongoose.Schema({
     rank: {type: String},
     color: {type: String},
     position: {type: String},
-    coord: [{type: Array}],
+    coord: [{type: Number}],
     hasBeenMoved: {type: Boolean},
     inPlay: {type: Boolean}
 })
 
 interface PlayerI extends Document{
-    player: {
-        username: string;
-        ready: boolean;
-        color: string;
-        turn: boolean;
-        check: boolean;
-    }
+    username: string;
+    ready: boolean;
+    color: string;
+    turn: boolean;
+    check: boolean;
 }
 
 const PlayerSchema: Schema = new mongoose.Schema({
@@ -49,6 +47,7 @@ interface ChessboardI extends Document{
 
 interface ChessboardIDoc extends ChessboardI, Document{
     setupBoard: () => void
+    renderBoard: (from: string, to: string, newCoord: [number, number]) => void
 }
 
 interface ChessboardIModel extends Model<ChessboardIDoc>{
@@ -130,6 +129,32 @@ chessboardSchema.method("setupBoard", async function(this: ChessboardI){
     chessboard.occupied = positions
     
     await chessboard.save()
+})
+
+chessboardSchema.method("renderBoard", async function(this: ChessboardI, from: string, to: string, newCoord: [number, number]){
+
+    const chessboard = this
+    const chesspiece = chessboard.chesspieces.find(piece => piece.id === from)
+
+    if(!chesspiece!.hasBeenMoved){
+        chesspiece!.hasBeenMoved = true
+        chessboard.markModified('chesspiece.hasBeenMoved')
+        await chessboard.save()
+    }
+    
+    chesspiece!.position = to
+    chessboard.markModified('chesspiece.position')
+    chesspiece!.coord = newCoord
+    chessboard.markModified('chesspiece.coord')
+
+    chessboard!.occupied[from] = to
+    chessboard.markModified('occupied')
+
+    chessboard.players[0].turn = !chessboard.players[0].turn
+    chessboard.players[1].turn = !chessboard.players[1].turn
+
+    await chessboard.save()
+
 })
 
 const Chessboard = mongoose.model<ChessboardIDoc, ChessboardIModel>("Chessboard", chessboardSchema);

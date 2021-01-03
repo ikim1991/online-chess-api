@@ -107,6 +107,24 @@ io.on('connection', (socket: Socket) => {
         }
     })
 
+    socket.on('movePiece', async (identifier: string, from: string, to: string, newCoord: [number, number]) => {
+
+        const chessboard = await Chessboard.findOne({identifier})
+
+        if(chessboard){
+            await chessboard!.renderBoard(from, to, newCoord)
+
+            await io.to(identifier).emit('renderBoard', chessboard.occupied, chessboard.chesspieces, chessboard.players)
+        }
+    })
+
+    
+    socket.on('capturePiece', async (identifier: string, movedPiece: any, captured: any) => {
+        console.log(identifier, movedPiece, captured)
+
+        await io.to(identifier).emit('renderBoard', "ON CAPTURE")
+    })
+
     socket.on('disconnect', () => {
         console.log("Client Disconnected...")
     })
