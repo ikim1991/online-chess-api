@@ -175,7 +175,9 @@ chessboardSchema.method("onCapture", async function(this: ChessboardI, fromID: s
 
     captured!.position = "a0"
     chessboard.markModified('captured.position')
-
+    captured!.inPlay = false
+    chessboard.markModified('captured.inPlay')
+    
     chessboard.players[0].turn = !chessboard.players[0].turn
     chessboard.players[1].turn = !chessboard.players[1].turn
 

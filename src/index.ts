@@ -87,7 +87,6 @@ io.on('connection', (socket: Socket) => {
                             username: game.host.username,
                             ready: game.host.ready,
                             color: game.host.color,
-                            turn: true,
                             check: false
 
                         },
@@ -95,12 +94,20 @@ io.on('connection', (socket: Socket) => {
                             username: game.joiner.username,
                             ready: game.joiner.ready,
                             color: game.joiner.color,
-                            turn: false,
                             check: false
                         }
                     ]
                 })
 
+                if(chessboard.players[0].color === 'WHITE'){
+                    chessboard.players[0].turn = true
+                    chessboard.players[1].turn = false
+                } else{
+                    chessboard.players[0].turn = false
+                    chessboard.players[1].turn = true
+                }
+
+                await chessboard.save()
                 await chessboard.setupBoard();
 
             }
