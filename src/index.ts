@@ -70,7 +70,7 @@ io.on('connection', (socket: Socket) => {
             }
 
             if(game!.host.hand && game!.joiner!.hand){
-                const resolved = await game.rockPaperScissors(identifier)
+                const resolved = await game.rockPaperScissors()
     
                 if(resolved){
                     game!.gameState = 'PLAY'
@@ -110,6 +110,24 @@ io.on('connection', (socket: Socket) => {
                 await chessboard.save()
                 await chessboard.setupBoard();
 
+            }
+        }
+    })
+
+    socket.on('exitRoom', async (identifier: string, username: string) => {
+
+        const game = await Game.findOne({identifier});
+
+        if(game){
+
+            const broadcast = await game.exitRoom(username);
+            
+            if(broadcast){
+                await socket.to(identifier).broadcast.emit('onExitRoomUpdate', game)
+            } else{
+                if(game.host.username.length + game.joiner.username.length === 0){
+                    await Game.deleteOne({identifier});
+                }
             }
         }
     })

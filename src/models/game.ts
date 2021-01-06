@@ -25,7 +25,8 @@ interface GameI extends Document{
 }
 
 interface GameIDoc extends GameI, Document{ 
-    rockPaperScissors: (identifier: string) => boolean
+    rockPaperScissors: () => boolean
+    exitRoom: (username: string) => boolean
  }
 
 interface GameIModel extends Model<GameIDoc>{
@@ -78,7 +79,7 @@ gameSchema.static('joinRoom', async (identifier: string, username: string) => {
     return game;
 })
 
-gameSchema.method('rockPaperScissors', async function(this: GameI, identifier: string){
+gameSchema.method('rockPaperScissors', async function(this: GameI){
 
     const game = this
 
@@ -151,6 +152,51 @@ gameSchema.method('rockPaperScissors', async function(this: GameI, identifier: s
 
         return false
     }
+})
+
+gameSchema.method('exitRoom', async function(this: GameI, username: string){
+
+    const game = this;
+
+    if(game){
+        if(game.joiner.username === username){
+            game.joiner.username = ""
+            game.joiner.ready = false
+            delete game.joiner.result
+            delete game.joiner.color
+            delete game.joiner.hand
+
+            game.gameState = 'QUEUE'
+
+            await game.save()
+            return true
+        } else{
+            if(game.joiner.username.length > 0){
+                game.host.username = game.joiner.username
+                game.host.ready = false
+                delete game.host.result
+                delete game.host.color
+                delete game.host.hand
+    
+                game.joiner.username = ""
+                game.joiner.ready = false
+                delete game.joiner.result
+                delete game.joiner.color
+                delete game.joiner.hand
+
+                game.gameState = 'QUEUE'
+    
+                await game.save()
+                return true
+            } else{
+                game.host.username = ""
+                await game.save()
+                return false
+            }
+        }
+    }
+
+    return false
 })
 
 gameSchema.static('resetHand', async (identifier: string) => {
