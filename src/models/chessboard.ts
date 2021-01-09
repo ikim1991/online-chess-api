@@ -43,12 +43,15 @@ interface ChessboardI extends Document{
     occupied: {[key: string]: string};
     chesspieces: ChesspieceI[];
     players: PlayerI[];
+    checkmate: boolean;
+    reset: boolean;
 }
 
 interface ChessboardIDoc extends ChessboardI, Document{
     setupBoard: () => void
     onMove: (fromID: string, toPosition: string, newCoord: [number, number]) => void
     onCapture: (fromID: string, toPosition: string, toID: string, toCoord: [number, number]) => void
+    changeUp: () => void
 }
 
 interface ChessboardIModel extends Model<ChessboardIDoc>{
@@ -74,7 +77,15 @@ const chessboardSchema: Schema = new mongoose.Schema({
     occupied: {
         type: Schema.Types.Mixed
     },
-    players: [PlayerSchema]
+    players: [PlayerSchema],
+    checkmate: {
+        type: Boolean,
+        default: false
+    },
+    reset: {
+        type: Boolean,
+        default: false
+    }
 });
 
 chessboardSchema.method("setupBoard", async function(this: ChessboardI){
@@ -137,6 +148,11 @@ chessboardSchema.method("onMove", async function(this: ChessboardI, fromID: stri
     const chessboard = this
     const chesspiece = chessboard.chesspieces.find(piece => piece.id === fromID)
 
+    if(chessboard.reset){
+        chessboard.reset = false
+        await chessboard.save()
+    }
+
     if(!chesspiece!.hasBeenMoved){
         chesspiece!.hasBeenMoved = true
         chessboard.markModified('chesspiece.hasBeenMoved')
@@ -173,6 +189,11 @@ chessboardSchema.method("onCapture", async function(this: ChessboardI, fromID: s
 
     const captured = chessboard.chesspieces.find(piece => piece.id === toID)
 
+    if(captured!.rank === 'KING'){
+        chessboard.checkmate = true
+        chessboard.reset = true
+    }
+
     captured!.position = "a0"
     chessboard.markModified('captured.position')
     captured!.inPlay = false
@@ -184,6 +205,33 @@ chessboardSchema.method("onCapture", async function(this: ChessboardI, fromID: s
     await chessboard.save()
 })
 
+chessboardSchema.method("changeUp", async function(this: ChessboardI){
+
+    const chessboard = this
+
+    if(chessboard.reset){
+        chessboard.reset = false
+        chessboard.checkmate = false;
+        await chessboard.save()
+
+        if(chessboard.players[0].color === 'WHITE'){
+            chessboard.players[0].color = 'BLACK'
+            chessboard.players[0].turn = false
+
+            chessboard.players[1].color = 'WHITE'
+            chessboard.players[1].turn = true
+        } else{
+            chessboard.players[0].color = 'WHITE'
+            chessboard.players[0].turn = true
+
+            chessboard.players[1].color = 'BLACK'
+            chessboard.players[1].turn = false
+        }
+
+        await chessboard.save()
+    }
+    
+})
 
 
 const Chessboard = mongoose.model<ChessboardIDoc, ChessboardIModel>("Chessboard", chessboardSchema);

@@ -28,7 +28,7 @@ io.on('connection', (socket: Socket) => {
         
         const game = await Game.findOne({identifier});
         
-        io.to(identifier).emit('updateHostPage', game);
+        socket.to(identifier).broadcast.emit('updateHostPage', game);
     })
 
     socket.on("onReady", async (identifier: string, userType: string, player: any) => {
@@ -75,40 +75,40 @@ io.on('connection', (socket: Socket) => {
                 if(resolved){
                     game!.gameState = 'PLAY'
                     await game!.save()
+
+                    const chessboard = new Chessboard({
+                        identifier,
+                        players: [
+                            {
+                                username: game.host.username,
+                                ready: game.host.ready,
+                                color: game.host.color,
+                                check: false
+    
+                            },
+                            {
+                                username: game.joiner.username,
+                                ready: game.joiner.ready,
+                                color: game.joiner.color,
+                                check: false
+                            }
+                        ]
+                    })
+    
+                    if(chessboard.players[0].color === 'WHITE'){
+                        chessboard.players[0].turn = true
+                        chessboard.players[1].turn = false
+                    } else{
+                        chessboard.players[0].turn = false
+                        chessboard.players[1].turn = true
+                    }
+    
+                    await chessboard.save()
+                    await chessboard.setupBoard();
                 }
 
                 await io.to(identifier).emit('results', game, resolved)
-                await Game.resetHand(identifier)
-
-                const chessboard = new Chessboard({
-                    identifier,
-                    players: [
-                        {
-                            username: game.host.username,
-                            ready: game.host.ready,
-                            color: game.host.color,
-                            check: false
-
-                        },
-                        {
-                            username: game.joiner.username,
-                            ready: game.joiner.ready,
-                            color: game.joiner.color,
-                            check: false
-                        }
-                    ]
-                })
-
-                if(chessboard.players[0].color === 'WHITE'){
-                    chessboard.players[0].turn = true
-                    chessboard.players[1].turn = false
-                } else{
-                    chessboard.players[0].turn = false
-                    chessboard.players[1].turn = true
-                }
-
-                await chessboard.save()
-                await chessboard.setupBoard();
+                await game.resetHand()
 
             }
         }
@@ -143,15 +143,62 @@ io.on('connection', (socket: Socket) => {
         }
     })
 
-    
     socket.on('capturePiece', async (identifier: string, fromID: string, toPosition: string, toID: string, toCoord: [number, number]) => {
 
         const chessboard = await Chessboard.findOne({identifier})
 
         if(chessboard){
             await chessboard!.onCapture(fromID, toPosition, toID, toCoord)
+            
+            if(chessboard.checkmate){
+                const winner = chessboard.players.find(player => !player.turn)
+                await io.to(identifier).emit('endGame', winner)
+            } else{
+                await io.to(identifier).emit('renderBoard', chessboard.occupied, chessboard.chesspieces, chessboard.players)
+            }
+        }
+    })
 
-            await io.to(identifier).emit('renderBoard', chessboard.occupied, chessboard.chesspieces, chessboard.players)
+    socket.on('playAgain', async (identifier: string) => {
+        const chessboard = await Chessboard.findOne({identifier})
+
+        if(chessboard){
+            await chessboard.changeUp()
+            await chessboard.setupBoard()
+
+            await io.to(identifier).emit('changeUp', chessboard.chesspieces, chessboard.players)
+        }
+    })
+
+    socket.on('exitRPS', async (identifier: string, username: string) => {
+        const game = await Game.findOne({identifier})
+
+        if(game){
+
+            const broadcast = await game.exitRoom(username)
+
+            if(!broadcast){
+                await Game.deleteOne({identifier});
+            } else{
+                await socket.to(identifier).broadcast.emit("onDisconnectRPS", game)
+            }
+        }
+    })
+
+    socket.on('exitGame', async (identifier: string, username: string) => {
+        const game = await Game.findOne({identifier})
+
+        if(game){
+
+            const broadcast = await game.exitRoom(username)
+            await Chessboard.deleteOne({identifier})
+
+            if(!broadcast){
+                await Game.deleteOne({identifier});
+            } else{
+                await socket.to(identifier).broadcast.emit("clearTimer", game)
+                await socket.to(identifier).broadcast.emit("backToQueue", game)
+            }
         }
     })
 

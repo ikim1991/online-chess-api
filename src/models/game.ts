@@ -14,7 +14,6 @@ const PlayerSchema: Schema = new mongoose.Schema({
     color: {type: String},
     hand: {type: String},
     result: {type: String}
-
 })
 
 interface GameI extends Document{
@@ -25,14 +24,14 @@ interface GameI extends Document{
 }
 
 interface GameIDoc extends GameI, Document{ 
-    rockPaperScissors: () => boolean
-    exitRoom: (username: string) => boolean
+    rockPaperScissors: () => boolean,
+    resetHand: () => void,
+    exitRoom: (username: string) => boolean,
  }
 
 interface GameIModel extends Model<GameIDoc>{
     createRoom: (identifier: string, username: string) => GameI,
-    joinRoom: (identifier: string, username: string) => GameI,
-    resetHand: (identifier: string) => void
+    joinRoom: (identifier: string, username: string) => GameI
 }
 
 const gameSchema: Schema = new mongoose.Schema({
@@ -199,10 +198,9 @@ gameSchema.method('exitRoom', async function(this: GameI, username: string){
     return false
 })
 
-gameSchema.static('resetHand', async (identifier: string) => {
+gameSchema.method('resetHand', async function(this: GameI){
 
-    const game = await Game.findOne({identifier});
-
+    const game = this
     if(game){
         game.host.hand = undefined
         game.host.result = undefined
