@@ -107,7 +107,7 @@ gameSchema.method('rockPaperScissors', async function(this: GameI){
         game!.host.result = 'LOSE'
         game!.host.color = 'BLACK'
         game!.joiner.result = 'WIN'
-        game!.joiner.color = 'WHTIE'
+        game!.joiner.color = 'WHITE'
 
         await game!.save()
 
@@ -127,7 +127,7 @@ gameSchema.method('rockPaperScissors', async function(this: GameI){
         game!.host.result = 'LOSE'
         game!.host.color = 'BLACK'
         game!.joiner.result = 'WIN'
-        game!.joiner.color = 'WHTIE'
+        game!.joiner.color = 'WHITE'
 
         await game!.save()
 

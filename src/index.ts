@@ -172,9 +172,13 @@ io.on('connection', (socket: Socket) => {
 
     socket.on('exitRPS', async (identifier: string, username: string) => {
         const game = await Game.findOne({identifier})
+        const chessboard = await Chessboard.findOne({identifier})
+
+        if(chessboard){
+            await Chessboard.deleteOne({identifier})
+        }
 
         if(game){
-
             const broadcast = await game.exitRoom(username)
 
             if(!broadcast){
