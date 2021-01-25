@@ -1,7 +1,6 @@
 import './db/mongoose';
 import app from './app';
 import { Socket } from 'socket.io';
-import { NextFunction } from 'express';
 import Game from './models/game';
 import Chessboard from './models/chessboard';
 
@@ -13,13 +12,7 @@ const io = require('socket.io')(app, {
 
 const PORT = process.env.PORT || 3001;
 
-io.use((socket: Socket, next: NextFunction) => {
-    console.log("MIDDLEWARE");
-    next();
-})
-
-
-io.on('connection', (socket: Socket) => {
+io.on('connection', async (socket: Socket) => {
 
     console.log("Client Connected...");
 

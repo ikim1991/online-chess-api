@@ -3,26 +3,22 @@ import Game from '../models/game';
 
 const router: Router = Router()
 
-router.get('/game', async (req: Request, res: Response) => {
-    
-    res.send('game')
-})
-
 router.post('/create', async (req: Request, res: Response) => {
 
     const { identifier, username } = req.body
     const validIdentifier = await Game.findOne({identifier});
 
-    if(!validIdentifier){
+    try{
+        if(!validIdentifier){
 
-        const game = await Game.createRoom(identifier, username);
-        
-        return res.send(game);
-
+            const game = await Game.createRoom(identifier, username);
+    
+            return res.send(game);
+    
+        }
+    } catch(error){
+        res.status(400).send({error: "Please try again..."})
     }
-
-    res.status(400).send({error: "Please try again..."})
-
 });
 
 router.get('/join', async (req: Request, res: Response) => {
@@ -31,7 +27,13 @@ router.get('/join', async (req: Request, res: Response) => {
 
     const gameList = games.map(game => game.identifier)
 
-    res.send(gameList);
+    
+
+    try{
+        res.send(gameList);
+    } catch(error){
+        res.status(400).send({error: "Please try again..."})
+    }
 });
 
 router.post('/join', async (req: Request, res: Response) => {
@@ -39,19 +41,20 @@ router.post('/join', async (req: Request, res: Response) => {
     const { identifier, username } = req.body
     const validIdentifier = await Game.findOne({identifier});
 
-    if(username === validIdentifier!.host.username){
-        return res.status(400).send({error: "Please choose a different username..."})
+    try{
+        if(username === validIdentifier!.host.username){
+            return res.status(400).send({error: "Please choose a different username..."})
+        }
+    
+        if(validIdentifier && !validIdentifier.joiner!.username && validIdentifier.host.username !== username){
+    
+            const game = await Game.joinRoom(identifier, username);
+    
+            return res.send(game);
+        }
+    } catch(error){
+        res.status(400).send({error: "Please try again..."})
     }
-
-    if(validIdentifier && !validIdentifier.joiner!.username && validIdentifier.host.username !== username){
-
-        const game = await Game.joinRoom(identifier, username);
-        
-        return res.send(game);
-    }
-
-    res.status(400).send({error: "Please try again..."})
-
 });
 
 
