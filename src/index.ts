@@ -4,11 +4,13 @@ import { Socket } from 'socket.io';
 import Game from './models/game';
 import Chessboard from './models/chessboard';
 
-const io = require('socket.io')(app, {
-    cors: {
-      origin: '*',
-    }
-  });
+// const io = require('socket.io')(app, {
+//     cors: {
+//       origin: '*',
+//     }
+//   });
+
+const io = require('socket.io')(app)
 
 const PORT = process.env.PORT || 3001;
 
