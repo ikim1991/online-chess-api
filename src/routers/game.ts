@@ -3,6 +3,10 @@ import Game from '../models/game';
 
 const router: Router = Router()
 
+router.get('/', async (req: Request, res: Response) => {
+    res.send("Server is up and running...")
+})
+
 router.post('/create', async (req: Request, res: Response) => {
 
     const { identifier, username } = req.body
