@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "env-cmd -f ./dev.env nodemon ./src/index.ts",
     "build": "tsc -p .",
-    "start": "node build/src/index.mjs",
+    "start": "node build/src/index.js",
     "deploy": "git add . && git commit -m Heroku && git push heroku HEAD:master"
   },
   "keywords": [],
