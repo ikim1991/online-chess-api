@@ -7,7 +7,7 @@
     "dev": "env-cmd -f ./dev.env nodemon ./src/index.ts",
     "build": "tsc -p .",
     "start": "node build/src/index.mjs",
-    "deploy": "git add . && git commit -m Heroku && git push heroku master"
+    "deploy": "git add . && git commit -m Heroku && git push heroku HEAD:master"
   },
   "keywords": [],
   "author": "",
