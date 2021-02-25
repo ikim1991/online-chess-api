@@ -10,7 +10,7 @@ To view the coding documentation for this web application, refer to the link bel
 The application is deployed through GitHub Pages and Heroku. The application can be found in the link below:  
 [Production Website Link](https://ikim1991.github.io/online-chess/)  
 
-The source code for the server side can be found in the link below:  
+The source code for the client side can be found in the link below:  
 [Client Side Source Code](https://github.com/ikim1991/online-chess/)  
 
 The back-end application is hosted on Heroku using its free-tier plan. This may cause the first login to take a few seconds to load as the app is put to sleep after 30 minutes of inactivity.  
