@@ -2,7 +2,7 @@
 
 ### Summary  
 
-After binge watching The Queen's Gambit on Netflix, I decided to build a fully working game of chess on the web.  
+After binge watching The Queen’s Gambit, I decided to build a fully functioning game of chess.  
 
 To view the coding documentation for this web application, refer to the link below:  
 [Coding Documentation Link](https://ikim1991.github.io/coding-documentation/#/online-chess/)  
